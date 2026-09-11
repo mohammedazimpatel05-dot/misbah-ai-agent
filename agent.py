@@ -67,13 +67,18 @@ def chat():
     if not GEMINI_API_KEY:
         return jsonify({"reply": "API Key missing in environment variables!"})
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {"contents": [{"parts": [{"text": user_msg}]}]}
 
     try:
         res = requests.post(url, headers=headers, json=payload).json()
-        reply = res['candidates'][0]['content']['parts'][0]['text']
+        if "candidates" in res:
+            reply = res['candidates'][0]['content']['parts'][0]['text']
+        elif "error" in res:
+            reply = f"API Error: {res['error'].get('message', 'Unknown Error')}"
+        else:
+            reply = f"Unexpected response: {str(res)}"
     except Exception as e:
         reply = f"Error: {str(e)}"
 
